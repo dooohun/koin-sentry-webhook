@@ -13,7 +13,11 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-function loadEnv(): Env {
+let cached: Env | null = null;
+
+export function getEnv(): Env {
+  if (cached) return cached;
+
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
@@ -21,10 +25,9 @@ function loadEnv(): Env {
       .map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`)
       .join('\n');
 
-    throw new Error(`[env] Invalid environment variables:\n${issues}`);
+    throw new Error(`Invalid environment variables:\n${issues}`);
   }
 
-  return parsed.data;
+  cached = parsed.data;
+  return cached;
 }
-
-export const env = loadEnv();

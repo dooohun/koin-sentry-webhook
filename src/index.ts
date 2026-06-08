@@ -1,7 +1,9 @@
 import { serve } from '@hono/node-server';
 import { app } from './app.js';
-import { env } from './utils/env.js';
+import { getEnv } from './utils/env.js';
 import { logger } from './utils/logger.js';
+
+const env = getEnv();
 
 serve(
   {

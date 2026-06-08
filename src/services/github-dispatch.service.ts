@@ -1,4 +1,4 @@
-import { env } from '../utils/env.js';
+import { getEnv } from '../utils/env.js';
 import { logger } from '../utils/logger.js';
 import type { NormalizedSentryIssue } from '../schemas/sentry-webhook.schema.js';
 
@@ -12,6 +12,7 @@ export type DispatchResult =
 export async function dispatchToGithub(
   issue: NormalizedSentryIssue,
 ): Promise<DispatchResult> {
+  const env = getEnv();
   const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/dispatches`;
 
   const requestBody = {

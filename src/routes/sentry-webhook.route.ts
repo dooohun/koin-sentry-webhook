@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { env } from '../utils/env.js';
+import { getEnv } from '../utils/env.js';
 import { logger } from '../utils/logger.js';
 import {
   normalizeSentryPayload,
@@ -13,7 +13,7 @@ sentryWebhookRoute.post('/sentry', async (c) => {
   logger.info('Sentry webhook received');
 
   const providedSecret = c.req.header('x-webhook-secret');
-  if (providedSecret !== env.SENTRY_WEBHOOK_SECRET) {
+  if (providedSecret !== getEnv().SENTRY_WEBHOOK_SECRET) {
     logger.warn('Sentry webhook secret mismatch', {
       hasHeader: providedSecret !== undefined,
     });
