@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.log
+
+# 환경변수 (secret 포함)
+.env
+.env.local
+.env.*.local
+
+# 에디터/OS
+.DS_Store
+.idea/
+.vscode/

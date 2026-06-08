@@ -1,0 +1,32 @@
+{
+  "name": "koin-sentry-webhook",
+  "version": "0.1.0",
+  "description": "Sentry Webhook Receiver that triggers GitHub Actions via repository_dispatch",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "sentry",
+    "webhook",
+    "github",
+    "repository_dispatch",
+    "hono"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "dotenv": "^17.4.2",
+    "hono": "^4.6.14",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
