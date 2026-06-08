@@ -21,8 +21,7 @@ function loadEnv(): Env {
       .map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`)
       .join('\n');
 
-    console.error(`[env] Invalid environment variables:\n${issues}`);
-    process.exit(1);
+    throw new Error(`[env] Invalid environment variables:\n${issues}`);
   }
 
   return parsed.data;

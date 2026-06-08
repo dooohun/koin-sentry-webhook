@@ -42,9 +42,11 @@ POST /webhooks/sentry
 ## 디렉토리 구조
 
 ```txt
+api/
+  index.ts                          # Vercel serverless 진입점 (hono/vercel handle)
 src/
-  index.ts                          # 엔트리포인트 (서버 listen)
-  app.ts                            # Hono 앱 구성 + 공통 에러/404 처리
+  index.ts                          # 로컬 실행 엔트리포인트 (@hono/node-server)
+  app.ts                            # Hono 앱 구성 + 공통 에러/404 처리 (로컬·Vercel 공용)
   routes/
     sentry-webhook.route.ts         # POST /webhooks/sentry
   services/
@@ -54,7 +56,10 @@ src/
   utils/
     env.ts                          # zod 기반 환경변수 검증
     logger.ts                       # console 기반 최소 로거
+vercel.json                         # 모든 경로를 /api 함수로 rewrite
 ```
+
+> 앱 정의(`src/app.ts`)는 로컬 실행과 Vercel 배포가 공유합니다. 로컬은 `src/index.ts`가 포트를 listen하고, Vercel은 `api/index.ts`가 요청당 함수로 호출합니다.
 
 ## 환경변수
 
