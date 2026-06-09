@@ -4,6 +4,7 @@ import type { NormalizedSentryIssue } from '../schemas/sentry-webhook.schema.js'
 
 const GITHUB_API_VERSION = '2022-11-28';
 const DISPATCH_EVENT_TYPE = 'sentry-error';
+const REQUEST_TIMEOUT_MS = 10_000;
 
 export type DispatchResult =
   | { ok: true }
@@ -27,22 +28,39 @@ export async function dispatchToGithub(
     },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  logger.info('Dispatching to GitHub', { url, issueId: issue.issueId });
+  const startedAt = Date.now();
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': GITHUB_API_VERSION,
+      },
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    logger.error('GitHub dispatch request error', {
+      issueId: issue.issueId,
+      elapsedMs: Date.now() - startedAt,
+      timedOut,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { ok: false, status: timedOut ? 504 : 502, body: String(error) };
+  }
 
   if (response.ok) {
     logger.info('GitHub dispatch succeeded', {
       issueId: issue.issueId,
       eventType: DISPATCH_EVENT_TYPE,
       status: response.status,
+      elapsedMs: Date.now() - startedAt,
     });
     return { ok: true };
   }
@@ -51,6 +69,7 @@ export async function dispatchToGithub(
   logger.error('GitHub dispatch failed', {
     issueId: issue.issueId,
     status: response.status,
+    elapsedMs: Date.now() - startedAt,
     body: errorBody,
   });
 
