@@ -1,22 +1,22 @@
 export type SentryWebhookPayload = {
   data?: {
     issue?: {
-      id?: string;
+      id?: string | number;
       title?: string;
       web_url?: string;
       permalink?: string;
     };
     event?: {
-      id?: string;
-      issue_id?: string;
+      id?: string | number;
+      issue_id?: string | number;
       title?: string;
       web_url?: string;
       environment?: string;
       level?: string;
-      project?: string;
+      project?: string | number;
     };
   };
-  project?: string;
+  project?: string | number;
   environment?: string;
   level?: string;
 };
@@ -36,19 +36,17 @@ export function normalizeSentryPayload(
   const issue = body.data?.issue;
   const event = body.data?.event;
 
-  const issueId = issue?.id ?? event?.issue_id ?? event?.id;
-  const title = issue?.title ?? event?.title ?? 'Unknown Sentry Issue';
-  const sentryUrl = issue?.web_url ?? event?.web_url ?? issue?.permalink;
-  const environment = event?.environment ?? body.environment;
-  const level = event?.level ?? body.level;
-  const project = body.project ?? event?.project;
+  // Sentry는 일부 ID/project를 number로 보낸다. 모두 문자열로 통일해
+  // GitHub Actions에서 큰 숫자가 지수 표기로 깨지는 것을 방지한다.
+  const str = (value: unknown): string | undefined =>
+    value === undefined || value === null ? undefined : String(value);
 
   return {
-    issueId,
-    title,
-    sentryUrl,
-    environment,
-    level,
-    project,
+    issueId: str(issue?.id ?? event?.issue_id ?? event?.id),
+    title: str(issue?.title ?? event?.title) ?? 'Unknown Sentry Issue',
+    sentryUrl: str(issue?.web_url ?? event?.web_url ?? issue?.permalink),
+    environment: str(event?.environment ?? body.environment),
+    level: str(event?.level ?? body.level),
+    project: str(body.project ?? event?.project),
   };
 }
