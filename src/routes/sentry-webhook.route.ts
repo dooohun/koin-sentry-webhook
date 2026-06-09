@@ -5,6 +5,7 @@ import {
   normalizeSentryPayload,
   type SentryWebhookPayload,
 } from '../schemas/sentry-webhook.schema.js';
+import { buildAiContext } from '../normalizers/ai-context.normalizer.js';
 import { dispatchToGithub } from '../services/github-dispatch.service.js';
 
 const BODY_READ_TIMEOUT_MS = 8_000;
@@ -73,7 +74,9 @@ sentryWebhookRoute.post('/sentry', async (c) => {
     return c.json({ ok: false, message: 'Missing issueId in payload' }, 400);
   }
 
-  const result = await dispatchToGithub(issue);
+  const aiContext = buildAiContext(body, issue);
+
+  const result = await dispatchToGithub(issue, aiContext);
   if (!result.ok) {
     return c.json({ ok: false, message: 'Failed to dispatch to GitHub' }, 500);
   }
@@ -82,5 +85,11 @@ sentryWebhookRoute.post('/sentry', async (c) => {
     ok: true,
     dispatched: true,
     issueId: issue.issueId,
+    eventId: issue.eventId,
+    context: {
+      hasStacktrace: aiContext.stacktrace.frames.length > 0,
+      hasBreadcrumbs: aiContext.breadcrumbs.last_items.length > 0,
+      hasTopInAppFrame: aiContext.stacktrace.top_in_app_frame !== undefined,
+    },
   });
 });
