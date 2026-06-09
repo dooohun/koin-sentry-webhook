@@ -1,9 +1,7 @@
 import { getEnv } from '../utils/env.js';
 import { logger } from '../utils/logger.js';
-import type {
-  AiDebugContext,
-  NormalizedSentryIssue,
-} from '../schemas/sentry-webhook.schema.js';
+import type { AiDebugContext } from '../schemas/ai-debug-context.schema.js';
+import type { NormalizedSentryIssue } from '../schemas/sentry-webhook.schema.js';
 
 const GITHUB_API_VERSION = '2022-11-28';
 const DISPATCH_EVENT_TYPE = 'sentry-error';
@@ -28,7 +26,8 @@ export async function dispatchToGithub(
       sentry_url: issue.sentryUrl,
       environment: issue.environment,
       level: issue.level,
-      project: issue.project,
+      project: issue.projectSlug,
+      project_id: issue.projectId,
       agent: 'claude-code',
       mode: 'analysis',
       ai_context: aiContext,

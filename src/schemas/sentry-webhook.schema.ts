@@ -39,6 +39,9 @@ export type SentryEvent = {
   environment?: string;
   level?: string;
   project?: string | number;
+  project_slug?: string;
+  projectSlug?: string;
+  project_name?: string;
   culprit?: string;
   transaction?: string;
   timestamp?: string | number;
@@ -81,94 +84,12 @@ export type SentryWebhookPayload = {
     event?: SentryEvent;
   };
   project?: string | number;
+  project_slug?: string;
+  projectSlug?: string;
+  project_name?: string;
   environment?: string;
   level?: string;
   tags?: Array<{ key?: string; value?: unknown }> | Record<string, unknown>;
-};
-
-export type AiDebugContext = {
-  schema_version: '1.0';
-  source: 'sentry';
-  mode: 'analysis';
-
-  issue: {
-    id: string;
-    title: string;
-    url?: string;
-    level?: string;
-    environment?: string;
-    project?: string | number;
-  };
-
-  event: {
-    id?: string;
-    message?: string;
-    culprit?: string;
-    transaction?: string;
-    timestamp?: string;
-  };
-
-  runtime: {
-    browser?: {
-      name?: string;
-      version?: string;
-    };
-    os?: {
-      name?: string;
-      version?: string;
-    };
-    device?: {
-      name?: string;
-      family?: string;
-      model?: string;
-    };
-    url?: string;
-    user_agent?: string;
-  };
-
-  release: {
-    version?: string;
-    dist?: string;
-  };
-
-  stacktrace: {
-    top_in_app_frame?: {
-      filename?: string;
-      function?: string;
-      lineno?: number;
-      colno?: number;
-      context_line?: string;
-      abs_path?: string;
-    };
-    frames: Array<{
-      filename?: string;
-      function?: string;
-      lineno?: number;
-      colno?: number;
-      context_line?: string;
-      in_app?: boolean;
-      abs_path?: string;
-    }>;
-  };
-
-  breadcrumbs: {
-    last_items: Array<{
-      timestamp?: string;
-      category?: string;
-      type?: string;
-      level?: string;
-      message?: string;
-      data?: Record<string, unknown>;
-    }>;
-  };
-
-  tags: Record<string, string>;
-
-  ai_instructions: {
-    goal: string;
-    constraints: string[];
-    expected_output: string[];
-  };
 };
 
 export type NormalizedSentryIssue = {
@@ -178,7 +99,8 @@ export type NormalizedSentryIssue = {
   sentryUrl?: string;
   environment?: string;
   level?: string;
-  project?: string;
+  projectSlug?: string;
+  projectId?: string;
 };
 
 export function normalizeSentryPayload(
@@ -191,6 +113,18 @@ export function normalizeSentryPayload(
   const str = (value: unknown): string | undefined =>
     value === undefined || value === null ? undefined : String(value);
 
+  const rawProject = body.project ?? event?.project ?? issue?.project;
+  const projectId = str(rawProject);
+  const projectSlug =
+    body.project_slug ??
+    body.projectSlug ??
+    event?.project_slug ??
+    event?.projectSlug ??
+    body.project_name ??
+    event?.project_name ??
+    process.env['SENTRY_PROJECT'] ??
+    projectId;
+
   return {
     issueId: str(issue?.id ?? event?.issue_id ?? event?.id),
     eventId: str(event?.event_id ?? event?.id),
@@ -200,6 +134,7 @@ export function normalizeSentryPayload(
     sentryUrl: str(issue?.web_url ?? event?.web_url ?? issue?.permalink),
     environment: str(event?.environment ?? body.environment),
     level: str(event?.level ?? issue?.level ?? body.level),
-    project: str(body.project ?? event?.project ?? issue?.project),
+    projectSlug,
+    projectId,
   };
 }

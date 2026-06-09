@@ -1,5 +1,5 @@
+import type { AiDebugContext } from "../schemas/ai-debug-context.schema.js";
 import type {
-  AiDebugContext,
   NormalizedSentryIssue,
   SentryBreadcrumb,
   SentryEvent,
@@ -217,7 +217,8 @@ export function buildAiContext(
       url: issue.sentryUrl,
       level: issue.level,
       environment: issue.environment,
-      project: issue.project,
+      project: issue.projectSlug,
+      project_id: issue.projectId,
     },
     event: {
       id: issue.eventId,
