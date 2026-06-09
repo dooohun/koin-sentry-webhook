@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { handle } from '@hono/node-server/vercel';
 import { logger } from './utils/logger.js';
 import { sentryWebhookRoute } from './routes/sentry-webhook.route.js';
 
@@ -23,3 +24,6 @@ app.onError((err, c) => {
 app.notFound((c) => {
   return c.json({ ok: false, message: 'Not Found' }, 404);
 });
+
+// Vercel가 이 모듈을 함수 진입점으로 로드해도 유효하도록 default export로 핸들러 노출
+export default handle(app);
