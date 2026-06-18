@@ -182,22 +182,20 @@ function buildRuntime(event: SentryEvent): AiDebugContext["runtime"] {
 }
 
 const AI_INSTRUCTIONS: AiDebugContext["ai_instructions"] = {
-  goal: "Analyze the likely root cause of this Sentry issue.",
+  goal: "Analyze the root cause of this Sentry issue, fix the code, and create a pull request.",
   constraints: [
-    "Do not modify code yet.",
-    "Do not create a pull request yet.",
-    "Focus only on root cause analysis.",
     "Prefer in-app stack frames over node_modules or framework frames.",
     "Use breadcrumbs to infer the reproduction path.",
     "Consider WebView/native bridge behavior if the issue is related to authentication, navigation, token handling, or platform-specific behavior.",
     "Do not expose secrets, tokens, cookies, or personally identifiable information.",
+    "Create a new branch named fix/sentry-{issue_id} before making changes.",
+    "Write a clear PR description explaining the root cause and the fix.",
   ],
   expected_output: [
-    "Root cause hypothesis",
-    "Relevant files to inspect",
-    "Possible reproduction path",
-    "Risk level",
-    "Suggested next step",
+    "Root cause analysis",
+    "Code fix applied to relevant files",
+    "New branch created and pushed",
+    "Pull request created via gh pr create",
   ],
 };
 

@@ -13,8 +13,7 @@ serve(
   (info) => {
     logger.info('Sentry webhook receiver started', {
       port: info.port,
-      owner: env.GITHUB_OWNER,
-      repo: env.GITHUB_REPO,
+      repoPath: env.REPO_PATH,
     });
   },
 );

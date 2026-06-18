@@ -6,7 +6,7 @@ import {
   type SentryWebhookPayload,
 } from '../schemas/sentry-webhook.schema.js';
 import { buildAiContext } from '../normalizers/ai-context.normalizer.js';
-import { dispatchToGithub } from '../services/github-dispatch.service.js';
+import { runClaudeCode } from '../services/claude-runner.service.js';
 
 const BODY_READ_TIMEOUT_MS = 8_000;
 
@@ -76,14 +76,11 @@ sentryWebhookRoute.post('/sentry', async (c) => {
 
   const aiContext = buildAiContext(body, issue);
 
-  const result = await dispatchToGithub(issue, aiContext);
-  if (!result.ok) {
-    return c.json({ ok: false, message: 'Failed to dispatch to GitHub' }, 500);
-  }
+  runClaudeCode(issue, aiContext);
 
   return c.json({
     ok: true,
-    dispatched: true,
+    accepted: true,
     issueId: issue.issueId,
     eventId: issue.eventId,
     context: {
