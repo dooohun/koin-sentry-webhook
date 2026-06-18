@@ -36,13 +36,16 @@ export function runClaudeCode(
 
   const proc = spawn(
     'claude',
-    ['--print', '--dangerously-skip-permissions', '--allowedTools', 'Bash,Read,Edit,Write', prompt],
+    ['--print', '--dangerously-skip-permissions', '--allowedTools', 'Bash,Read,Edit,Write'],
     {
       cwd: env.REPO_PATH,
       detached: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     },
   );
+
+  proc.stdin.write(prompt);
+  proc.stdin.end();
 
   proc.stdout.on('data', (data: Buffer) => {
     logger.info('Claude stdout', { issueId: issue.issueId, output: data.toString().slice(0, 500) });
