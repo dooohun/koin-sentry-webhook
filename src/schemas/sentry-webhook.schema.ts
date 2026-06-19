@@ -109,7 +109,6 @@ export function normalizeSentryPayload(
   const issue = body.data?.issue;
   const event = body.data?.event;
 
-  // number로 오는 ID를 문자열로 통일해 GitHub Actions에서 지수 표기 깨짐을 방지한다.
   const str = (value: unknown): string | undefined =>
     value === undefined || value === null ? undefined : String(value);
 

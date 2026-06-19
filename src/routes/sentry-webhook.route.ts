@@ -7,6 +7,7 @@ import {
 } from '../schemas/sentry-webhook.schema.js';
 import { buildAiContext } from '../normalizers/ai-context.normalizer.js';
 import { runClaudeCode } from '../services/claude-runner.service.js';
+import * as processedStore from '../services/processed-store.service.js';
 
 const BODY_READ_TIMEOUT_MS = 8_000;
 
@@ -74,8 +75,20 @@ sentryWebhookRoute.post('/sentry', async (c) => {
     return c.json({ ok: false, message: 'Missing issueId in payload' }, 400);
   }
 
+  const existing = processedStore.get(issue.issueId);
+  if (existing?.status === 'processing' || existing?.status === 'completed') {
+    logger.info('Skipping duplicate Sentry issue', { issueId: issue.issueId, status: existing.status });
+    return c.json({
+      ok: true,
+      status: 'skipped',
+      reason: existing.status === 'processing' ? 'already in progress' : 'already completed',
+      issueId: issue.issueId,
+    });
+  }
+
   const aiContext = buildAiContext(body, issue);
 
+  await processedStore.markProcessing(issue.issueId);
   runClaudeCode(issue, aiContext);
 
   return c.json({

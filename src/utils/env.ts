@@ -5,8 +5,11 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
 
   REPO_PATH: z.string().min(1, 'REPO_PATH is required'),
+  PROCESSED_STORE_PATH: z.string().default('./data/processed.json'),
 
   SENTRY_WEBHOOK_SECRET: z.string().min(1, 'SENTRY_WEBHOOK_SECRET is required'),
+  SENTRY_API_TOKEN: z.string().optional(),
+  SENTRY_API_BASE_URL: z.string().default('https://sentry.io'),
 });
 
 export type Env = z.infer<typeof envSchema>;
