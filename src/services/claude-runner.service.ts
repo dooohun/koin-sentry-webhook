@@ -20,6 +20,8 @@ export function runClaudeCode(
 
   writeFileSync(contextFile, JSON.stringify(aiContext, null, 2));
 
+  const baseBranch = issue.environment === 'production' ? 'main' : 'develop';
+
   const prompt = `Sentry 에러가 발생했습니다. @${contextFile} 의 컨텍스트를 바탕으로 원인을 분석하고, 코드를 수정한 뒤 PR을 생성해주세요.
 
 에러 요약:
@@ -27,13 +29,15 @@ export function runClaudeCode(
 - Title: ${issue.title}
 - Sentry URL: ${issue.sentryUrl ?? ''}
 - Environment: ${issue.environment ?? 'unknown'}
+- Base Branch: ${baseBranch}
 
 작업 순서:
 1. 스택트레이스와 브레드크럼으로 root cause 파악
 2. 관련 파일 탐색 및 수정
-3. 새 브랜치 생성 (fix/sentry-${issueId})
+3. ${baseBranch} 브랜치 최신화 후 fix 브랜치 생성:
+   git checkout ${baseBranch} && git pull origin ${baseBranch} && git checkout -b fix/sentry-${issueId}
 4. 변경사항 커밋 및 푸시
-5. gh pr create 로 PR 생성`;
+5. .github 폴더의 PR 템플릿을 확인하고 그 형식에 맞춰 gh pr create --base ${baseBranch} 로 PR 생성`;
 
   logger.info('Spawning Claude Code', { issueId: issueId, repoPath: env.REPO_PATH });
 
