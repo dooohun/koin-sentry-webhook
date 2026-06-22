@@ -37,7 +37,11 @@ export function runClaudeCode(
 3. ${baseBranch} 브랜치 최신화 후 fix 브랜치 생성:
    git checkout ${baseBranch} && git pull origin ${baseBranch} && git checkout -b fix/sentry-${issueId}
 4. 변경사항 커밋 및 푸시
-5. .github 폴더의 PR 템플릿을 확인하고 그 형식에 맞춰 gh pr create --base ${baseBranch} 로 PR 생성`;
+5. .github 폴더의 PR 템플릿을 확인하고 그 형식에 맞춰 gh pr create --base ${baseBranch} 로 PR 생성
+
+코드 작성 시 주의사항:
+- 주석은 코드만으로 이해하기 어려운 비자명한 이유가 있을 때만 작성해라.
+- 코드 자체로 의도가 명확한 경우 주석을 달지 마라.`;
 
   logger.info('Spawning Claude Code', { issueId: issueId, repoPath: env.REPO_PATH });
 
